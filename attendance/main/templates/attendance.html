@@ -1,0 +1,45 @@
+<script
+  src="https://code.jquery.com/jquery-3.4.1.min.js"
+  integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+  crossorigin="anonymous"></script>
+
+<h1>Attendance Page</h1>
+{% csrf_token %}
+
+<video id="video" width="640" height="480" autoplay></video>
+<canvas id="canvas" width="640" height="480"></canvas>
+<div id="output"></div>
+
+<script>
+// Grab elements, create settings, etc.
+var video = document.getElementById('video');
+
+// Get access to the camera!
+if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    // Not adding `{ audio: true }` since we only want video now
+    navigator.mediaDevices.getUserMedia({ video: true }).then(function(stream) {
+        // video.src = window.URL.createObjectURL(stream);
+        video.srcObject = stream;
+        video.play();
+    });
+}
+</script>
+
+<script>
+// video.onplay = function(){
+//    setInterval(function(){
+//     console.log('asd');
+//    }, 1000);
+// };
+
+function testPost(){
+    var scale = 0.25;
+    var canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d')
+            .drawImage(video, 0, 0, canvas.width, canvas.height);
+    $.post('http://localhost:8000/imagefeed', {'image' : canvas.toDataURL().split(',')[1], 'csrfmiddlewaretoken' : $('input[name="csrfmiddlewaretoken"]').val() }, function(data, status) { console.log(data); } );
+}
+
+</script>
