@@ -22,6 +22,9 @@ def save_teacher_profile(sender, instance, **kwargs):
 class Student(models.Model):
     student_firstname = models.CharField(max_length = 100)
     student_lastname = models.CharField(max_length = 100)
+    student_section = models.CharField(default = 'A', max_length = 100)
+    student_batch = models.CharField(max_length=10, default='2019')
+    student_dept = models.CharField(max_length = 10, default='EE')
     student_enrollnumber = models.IntegerField()
     student_registrationdate = models.DateField()
 
