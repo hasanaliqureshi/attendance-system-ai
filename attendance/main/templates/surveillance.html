@@ -1,0 +1,114 @@
+<html>
+  <head>
+    <title>Attendance</title>
+    <script
+      src="https://code.jquery.com/jquery-3.4.1.min.js"
+      integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+      crossorigin="anonymous"
+    ></script>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    />
+  </head>
+  <style>
+    #stopbtn {
+      display: none;
+    }
+  </style>
+  <body>
+    {% csrf_token %}
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-5">
+          <br />
+          <div class="input-group-lg">
+            <label for="batch">Batch</label>
+            <input class="form-control" id="batch" placeholder="batch" />
+          </div>
+          <br />
+          <div class="input-group-lg">
+            <label for="section">Section</label>
+            <input id="section" class="form-control" placeholder="section" />
+          </div>
+          <br />
+          <button
+            id="startbtn"
+            onclick="start()"
+            class="btn btn-lg btn-success"
+          >
+            Start Attendance
+          </button>
+          <button id="stopbtn" onclick="stopatt()" class="btn btn-lg btn-danger">
+            Stop Attendance
+          </button>
+        </div>
+        <div class="col-sm-6">
+          <h2>Preview</h2>
+          <video id="video" autoplay></video>
+          <canvas id="canvas"></canvas>
+          <div id="output"></div>
+          <div id="detected"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Grab elements, create settings, etc.
+      var video = document.getElementById("video");
+
+      // Get access to the camera!
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        // Not adding `{ audio: true }` since we only want video now
+        navigator.mediaDevices
+          .getUserMedia({ video: true })
+          .then(function(stream) {
+            // video.src = window.URL.createObjectURL(stream);
+            video.srcObject = stream;
+            video.play();
+          });
+      }
+    </script>
+
+    <script>
+      var stop = false;
+      function stopatt() {
+        $("#startbtn").show();
+        $("#stopbtn").hide();
+        stop = true;
+      }
+      function start() {
+        $("#startbtn").hide();
+        $("#stopbtn").show();
+        let batch = $("#batch").val();
+        let section = $("#section").val();
+        var scale = 0.25;
+        var canvas = document.createElement("canvas");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas
+          .getContext("2d")
+          .drawImage(video, 0, 0, canvas.width, canvas.height);
+        if (stop == false) {
+          $.post(
+            "http://localhost:8000/attfeed",
+            {
+              image: canvas.toDataURL().split(",")[1],
+              batch: batch,
+              section: section,
+              csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val()
+            },
+            function(data, status) {
+              $("#detected").append(
+                '<img src="data:image/jpg;base64, ' + data + '"  />'
+              );
+              if (stop == false) {
+                start();
+              }
+            }
+          );
+        }
+      }
+    </script>
+  </body>
+</html>
